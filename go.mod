@@ -8,6 +8,7 @@ require (
 	github.com/aws/aws-sdk-go v1.44.194
 	github.com/blevesearch/bleve/v2 v2.3.7
 	github.com/caarlos0/env/v7 v7.1.0
+	github.com/caarlos0/env/v8 v8.0.0
 	github.com/deckarep/golang-set/v2 v2.3.0
 	github.com/disintegration/imaging v1.6.2
 	github.com/dustinxie/ecc v0.0.0-20210511000915-959544187564
