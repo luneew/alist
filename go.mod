@@ -22,7 +22,7 @@ require (
 	github.com/jlaffaye/ftp v0.1.0
 	github.com/json-iterator/go v1.1.12
 	github.com/maruel/natural v1.1.0
-	github.com/natefinch/lumberjack v2.0.0+incompatible
+	github.com/natefinch/lumberjack v2.2.1+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/pkg/sftp v1.13.5
 	github.com/pquerna/otp v1.4.0
