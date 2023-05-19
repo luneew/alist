@@ -37,8 +37,8 @@ require (
 	golang.org/x/net v0.10.0
 	gorm.io/driver/mysql v1.4.7
 	gorm.io/driver/postgres v1.4.8
-	gorm.io/driver/sqlite v1.4.4
-	gorm.io/gorm v1.24.5
+	gorm.io/driver/sqlite v1.5.1
+	gorm.io/gorm v1.25.0
 )
 
 require (
@@ -99,7 +99,7 @@ require (
 	github.com/libp2p/go-flow-metrics v0.1.0 // indirect
 	github.com/libp2p/go-libp2p v0.26.3 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
-	github.com/mattn/go-sqlite3 v1.14.15 // indirect
+	github.com/mattn/go-sqlite3 v1.14.16 // indirect
 	github.com/minio/sha256-simd v1.0.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
