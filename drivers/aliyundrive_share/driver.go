@@ -114,6 +114,8 @@ func (d *AliyundriveShare) Link(ctx context.Context, file model.Obj, args model.
 		return nil, err
 	}
 	log.Infof("add cache file successfully, file_id:  %s  文件:  %s", file.GetID(), file.GetName())
+	respInfo, _ := utils.Json.MarshalToString(fileCopyResp)
+	log.Infof("response: %s", respInfo)
 
 	// 新的file id
 	newFileId := fileCopyResp.Responses[0].Body.FileID
