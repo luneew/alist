@@ -2,7 +2,6 @@ package aliyundrive_share
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/alist-org/alist/v3/drivers/aliyundrive_open"
@@ -23,15 +22,23 @@ var (
 	CacheConfigPath  string
 )
 
-func init() {
+func InitConfig() {
 	// 读取config
 	CacheConfigPath = os.Getenv("CACHE_CONFIG_PATH")
 	if CacheConfigPath == "" {
 		CacheConfigPath = "/opt/alist/data/cache.json"
 	}
+	log.Infof("cache config file dir: %s", CacheConfigPath)
 	file, _ := os.ReadFile(CacheConfigPath)
 	CacheConfig = Config{}
-	_ = json.Unmarshal(file, &CacheConfig)
+	_ = utils.Json.Unmarshal(file, &CacheConfig)
+	if CacheConfig.OauthTokenURL == "" {
+		CacheConfig.OauthTokenURL = "https://api.nn.ci/alist/ali_open/token"
+	}
+
+	if CacheConfig.RemoveWay == "" {
+		CacheConfig.RemoveWay = "delete"
+	}
 
 	var err error
 	OpenAliyunDriver, err = getOpenDriver(CacheConfig)
@@ -111,6 +118,7 @@ func refreshToken() (string, string, error) {
 	if err := os.WriteFile(CacheConfigPath, []byte(cacheConfigJson), 0666); err != nil {
 		log.Error("failed to save cache config to config file")
 	}
+	log.Infof("refresh shared token successfully")
 
 	return CacheConfig.SharedRefreshToken, CacheConfig.SharedAccessToken, err
 }
