@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/alist-org/alist/v3/internal/conf"
 	"github.com/go-resty/resty/v2"
 )
 
@@ -22,7 +21,7 @@ func InitClient() {
 		resty.RedirectPolicyFunc(func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
 		}),
-	).SetTLSClientConfig(&tls.Config{InsecureSkipVerify: conf.Conf.TlsInsecureSkipVerify})
+	).SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 	NoRedirectClient.SetHeader("user-agent", UserAgent)
 
 	RestyClient = NewRestyClient()
@@ -34,7 +33,7 @@ func NewRestyClient() *resty.Client {
 		SetHeader("user-agent", UserAgent).
 		SetRetryCount(3).
 		SetTimeout(DefaultTimeout).
-		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: conf.Conf.TlsInsecureSkipVerify})
+		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 	return client
 }
 
@@ -42,7 +41,7 @@ func NewHttpClient() *http.Client {
 	return &http.Client{
 		Timeout: time.Hour * 48,
 		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: conf.Conf.TlsInsecureSkipVerify},
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		},
 	}
 }

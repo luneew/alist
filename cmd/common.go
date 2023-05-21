@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/alist-org/alist/v3/drivers/aliyundrive_share"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -13,6 +14,7 @@ import (
 
 func Init() {
 	bootstrap.InitConfig()
+	aliyundrive_share.InitConfig()
 	bootstrap.Log()
 	bootstrap.InitDB()
 	data.InitData()

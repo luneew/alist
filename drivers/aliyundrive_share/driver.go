@@ -108,15 +108,20 @@ func (d *AliyundriveShare) Link(ctx context.Context, file model.Obj, args model.
 	})
 
 	if err != nil {
+		log.Infof("failed to add cache file, file_id:  %s  文件:  %s", file.GetID(), file.GetName())
 		return nil, err
 	}
+	log.Infof("add cache file successfully, file_id:  %s  文件:  %s", file.GetID(), file.GetName())
 
 	// 新的file id
 	newFileId := fileCopyResp.Responses[0].Body.FileID
 
 	// 生成aliyun open的链接
 	newFile := File{
-		FileId: newFileId,
+		FileId:   newFileId,
+		Name:     file.GetName(),
+		DomainId: fileCopyResp.Responses[0].Body.DomainID,
+		DriveId:  fileCopyResp.Responses[0].Body.DriveID,
 	}
 
 	if err != nil {
