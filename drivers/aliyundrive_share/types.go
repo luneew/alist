@@ -100,7 +100,7 @@ type FileCopyResp struct {
 
 type Config struct {
 	SharedRefreshToken string `json:"shared_refresh_token" required:"true"`
-	SharedAccessToken  string
+	SharedAccessToken  string `json:"-"`
 	OpenRefreshToken   string `json:"open_refresh_token" required:"true"`
 	OrderBy            string `json:"order_by" type:"select" options:"name,size,updated_at,created_at"`
 	OrderDirection     string `json:"order_direction" type:"select" options:"ASC,DESC"`

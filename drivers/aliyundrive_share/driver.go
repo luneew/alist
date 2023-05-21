@@ -73,7 +73,7 @@ func (d *AliyundriveShare) Link(ctx context.Context, file model.Obj, args model.
 	//todo 计算容量，如果容量不够，清理最老的文件
 
 	// 转存文件
-	log.Infof("start to add cache file, file_id:  %s  file:  %s", file.GetID(), file.GetName())
+	utils.Log.Infof("start to add cache file, file_id:  %s  file:  %s", file.GetID(), file.GetName())
 
 	fileCopyReq := FileCopyReq{Requests: []Request{
 		{
@@ -110,12 +110,12 @@ func (d *AliyundriveShare) Link(ctx context.Context, file model.Obj, args model.
 	})
 
 	if err != nil {
-		log.Infof("failed to add cache file, file_id:  %s  文件:  %s", file.GetID(), file.GetName())
+		utils.Log.Errorf("failed to add cache file, file_id:  %s  文件:  %s", file.GetID(), file.GetName())
 		return nil, err
 	}
-	log.Infof("add cache file successfully, file_id:  %s  文件:  %s", file.GetID(), file.GetName())
+	utils.Log.Infof("add cache file successfully, file_id:  %s  文件:  %s", file.GetID(), file.GetName())
 	respInfo, _ := utils.Json.MarshalToString(fileCopyResp)
-	log.Infof("response: %s", respInfo)
+	utils.Log.Infof("response: %s", respInfo)
 
 	// 新的file id
 	newFileId := fileCopyResp.Responses[0].Body.FileID
@@ -133,7 +133,7 @@ func (d *AliyundriveShare) Link(ctx context.Context, file model.Obj, args model.
 	}
 
 	// 获取直链
-	var linkArgs model.LinkArgs
+	linkArgs := model.LinkArgs{}
 	return OpenAliyunDriver.Link(ctx, fileToObj(newFile), linkArgs)
 
 	//
