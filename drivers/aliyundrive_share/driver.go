@@ -93,7 +93,7 @@ func (d *AliyundriveShare) Link(ctx context.Context, file model.Obj, args model.
 			Headers: struct {
 				ContentType string `json:"Content-Type"`
 			}{
-				ContentType: "Content-Type",
+				ContentType: "application/json",
 			},
 			ID:     "0",
 			Method: "POST",
