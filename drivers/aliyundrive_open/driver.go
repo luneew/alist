@@ -64,6 +64,7 @@ func (d *AliyundriveOpen) List(ctx context.Context, dir model.Obj, args model.Li
 }
 
 func (d *AliyundriveOpen) link(ctx context.Context, file model.Obj) (*model.Link, error) {
+	utils.Log.Infof("start to get open api link, file id: %s", file.GetID())
 	res, err := d.request("/adrive/v1.0/openFile/getDownloadUrl", http.MethodPost, func(req *resty.Request) {
 		req.SetBody(base.Json{
 			"drive_id":   d.DriveId,
