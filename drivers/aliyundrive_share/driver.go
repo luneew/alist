@@ -70,26 +70,84 @@ func (d *AliyundriveShare) List(ctx context.Context, dir model.Obj, args model.L
 }
 
 func (d *AliyundriveShare) Link(ctx context.Context, file model.Obj, args model.LinkArgs) (*model.Link, error) {
-	data := base.Json{
-		"drive_id": d.DriveId,
-		"file_id":  file.GetID(),
-		// // Only ten minutes lifetime
-		"expire_sec": 600,
-		"share_id":   d.ShareId,
+	//todo 计算容量，如果容量不够，清理最老的文件
+
+	// 转存文件
+	fileCopyReq := FileCopyReq{Requests: []Request{
+		{
+			Body: struct {
+				FileID         string `json:"file_id"`
+				ShareID        string `json:"share_id"`
+				AutoRename     bool   `json:"auto_rename"`
+				ToParentFileID string `json:"to_parent_file_id"`
+				ToDriveID      string `json:"to_drive_id"`
+			}{
+				FileID:         file.GetID(),
+				ShareID:        d.ShareId,
+				AutoRename:     true,
+				ToParentFileID: CacheConfig.TempFolderId,
+				ToDriveID:      d.DriveId,
+			},
+			Headers: struct {
+				ContentType string `json:"Content-Type"`
+			}{
+				ContentType: "Content-Type",
+			},
+			ID:     "0",
+			Method: "POST",
+			URL:    "/file/copy",
+		},
+	},
+		Resource: "file",
 	}
-	var resp ShareLinkResp
-	_, err := d.request("https://api.aliyundrive.com/v2/file/get_share_link_download_url", http.MethodPost, func(req *resty.Request) {
-		req.SetBody(data).SetResult(&resp)
+
+	var fileCopyResp FileCopyResp
+
+	_, err := d.request("https://api.aliyundrive.com/adrive/v2/batch", http.MethodPost, func(req *resty.Request) {
+		req.SetBody(fileCopyReq).SetResult(&fileCopyResp)
 	})
+
 	if err != nil {
 		return nil, err
 	}
-	return &model.Link{
-		Header: http.Header{
-			"Referer": []string{"https://www.aliyundrive.com/"},
-		},
-		URL: resp.DownloadUrl,
-	}, nil
+
+	// 新的file id
+	newFileId := fileCopyResp.Responses[0].Body.FileID
+
+	// 生成aliyun open的链接
+	newFile := File{
+		FileId: newFileId,
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	// 获取直链
+	var linkArgs model.LinkArgs
+	return OpenAliyunDriver.Link(ctx, fileToObj(newFile), linkArgs)
+
+	//
+	//data := base.Json{
+	//	"drive_id": d.DriveId,
+	//	"file_id":  file.GetID(),
+	//	// // Only ten minutes lifetime
+	//	"expire_sec": 600,
+	//	"share_id":   d.ShareId,
+	//}
+	//var resp ShareLinkResp
+	//_, err = d.request("https://api.aliyundrive.com/v2/file/get_share_link_download_url", http.MethodPost, func(req *resty.Request) {
+	//	req.SetBody(data).SetResult(&resp)
+	//})
+	//if err != nil {
+	//	return nil, err
+	//}
+	//return &model.Link{
+	//	Header: http.Header{
+	//		"Referer": []string{"https://www.aliyundrive.com/"},
+	//	},
+	//	URL: resp.DownloadUrl,
+	//}, nil
 }
 
 func (d *AliyundriveShare) Other(ctx context.Context, args model.OtherArgs) (interface{}, error) {
