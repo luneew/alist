@@ -2,6 +2,7 @@ package aliyundrive_share
 
 import (
 	"context"
+	"github.com/alist-org/alist/v3/drivers/aliyundrive_open"
 	"net/http"
 	"time"
 
@@ -70,7 +71,7 @@ func (d *AliyundriveShare) List(ctx context.Context, dir model.Obj, args model.L
 }
 
 func (d *AliyundriveShare) Link(ctx context.Context, file model.Obj, args model.LinkArgs) (*model.Link, error) {
-	//todo 计算容量，如果容量不够，清理最老的文件
+	//todo 计算容量，如果容量不够，清理最老的文件，保持一定数量的窗口，删除最老的文件
 
 	// 转存文件
 	utils.Log.Infof("start to add cache file, file_id:  %s  file:  %s", file.GetID(), file.GetName())
@@ -88,7 +89,7 @@ func (d *AliyundriveShare) Link(ctx context.Context, file model.Obj, args model.
 				ShareID:        d.ShareId,
 				AutoRename:     true,
 				ToParentFileID: CacheConfig.TempFolderId,
-				ToDriveID:      d.DriveId,
+				ToDriveID:      OpenAliyunDriver.(*aliyundrive_open.AliyundriveOpen).DriveId,
 			},
 			Headers: struct {
 				ContentType string `json:"Content-Type"`

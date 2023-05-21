@@ -157,7 +157,7 @@ func (d *AliyundriveShare) request(url, method string, callback base.ReqCallback
 	req := base.RestyClient.R().
 		SetError(&e).
 		SetHeader("content-type", "application/json").
-		SetHeader("Authorization", "Bearer\t"+d.AccessToken).
+		SetHeader("Authorization", "Bearer\t"+CacheConfig.SharedAccessToken).
 		SetHeader("x-share-token", d.ShareToken)
 	if callback != nil {
 		callback(req)
