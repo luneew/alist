@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strings"
 
@@ -37,12 +38,13 @@ func (d *AliyundriveOpen) refreshToken() error {
 		return err
 	}
 	if e.Code != "" {
-		return fmt.Errorf("failed to refresh token: %s", e.Message)
+		return fmt.Errorf("failed to refresh open driver token: %s", e.Message)
 	}
 	if resp.RefreshToken == "" {
-		return errors.New("failed to refresh token: refresh token is empty")
+		return errors.New("failed to refresh open driver token: refresh token is empty")
 	}
 	d.RefreshToken, d.AccessToken = resp.RefreshToken, resp.AccessToken
+	log.Info("refresh open driver token successfully")
 	op.MustSaveDriverStorage(d)
 	return nil
 }

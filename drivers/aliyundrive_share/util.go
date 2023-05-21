@@ -105,7 +105,7 @@ func refreshToken() (string, string, error) {
 		return "", "", err
 	}
 	if e.Code != "" {
-		return "", "", fmt.Errorf("failed to refresh token: %s", e.Message)
+		return "", "", fmt.Errorf("failed to refresh shared driver token: %s", e.Message)
 	}
 	CacheConfig.SharedRefreshToken, CacheConfig.SharedAccessToken = resp.RefreshToken, resp.AccessToken
 	CacheConfig.OpenRefreshToken = OpenAliyunDriver.(*aliyundrive_open.AliyundriveOpen).RefreshToken
@@ -118,7 +118,7 @@ func refreshToken() (string, string, error) {
 	if err := os.WriteFile(CacheConfigPath, []byte(cacheConfigJson), 0666); err != nil {
 		log.Error("failed to save cache config to config file")
 	}
-	log.Infof("refresh shared token successfully")
+	log.Infof("refresh shared driver token successfully")
 
 	return CacheConfig.SharedRefreshToken, CacheConfig.SharedAccessToken, err
 }
@@ -171,10 +171,6 @@ func (d *AliyundriveShare) request(url, method string, callback base.ReqCallback
 	if e.Code != "" {
 		if e.Code == "AccessTokenInvalid" || e.Code == "ShareLinkTokenInvalid" {
 			if e.Code == "AccessTokenInvalid" {
-				_, _, err := refreshToken()
-				if err != nil {
-					return nil, err
-				}
 				err = d.refreshToken()
 			} else {
 				err = d.getShareToken()
