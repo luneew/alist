@@ -73,6 +73,8 @@ func (d *AliyundriveShare) Link(ctx context.Context, file model.Obj, args model.
 	//todo 计算容量，如果容量不够，清理最老的文件
 
 	// 转存文件
+	log.Infof("start to add cache file, file_id:  %s  file:  %s", file.GetID(), file.GetName())
+
 	fileCopyReq := FileCopyReq{Requests: []Request{
 		{
 			Body: struct {
