@@ -171,6 +171,10 @@ func (d *AliyundriveShare) request(url, method string, callback base.ReqCallback
 	if e.Code != "" {
 		if e.Code == "AccessTokenInvalid" || e.Code == "ShareLinkTokenInvalid" {
 			if e.Code == "AccessTokenInvalid" {
+				_, _, err := refreshToken()
+				if err != nil {
+					return nil, err
+				}
 				err = d.refreshToken()
 			} else {
 				err = d.getShareToken()
