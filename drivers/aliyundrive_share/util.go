@@ -202,7 +202,7 @@ func (d *AliyundriveShare) getFiles(fileId string) ([]File, error) {
 	data := base.Json{
 		"image_thumbnail_process": "image/resize,w_160/format,jpeg",
 		"image_url_process":       "image/resize,w_1920/format,jpeg",
-		"limit":                   100,
+		"limit":                   200,
 		"order_by":                d.OrderBy,
 		"order_direction":         d.OrderDirection,
 		"parent_file_id":          fileId,
@@ -216,10 +216,11 @@ func (d *AliyundriveShare) getFiles(fileId string) ([]File, error) {
 		}
 		var e ErrorResp
 		var resp ListResp
-		res, err := base.RestyClient.R().
+		res, err := base.ListRestyClient.R().
 			SetHeader("x-share-token", d.ShareToken).
 			SetResult(&resp).SetError(&e).SetBody(data).
-			Post("https://api.aliyundrive.com/adrive/v3/file/list")
+			Post("https://api.aliyundrive.com/adrive/v2/file/list_by_share")
+		//Post("https://api.aliyundrive.com/adrive/v3/file/list")
 		if err != nil {
 			return nil, err
 		}

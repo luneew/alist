@@ -12,6 +12,7 @@ import (
 var (
 	NoRedirectClient *resty.Client
 	RestyClient      *resty.Client
+	ListRestyClient  *resty.Client
 	HttpClient       *http.Client
 )
 var UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"
@@ -27,6 +28,13 @@ func InitClient() {
 
 	RestyClient = NewRestyClient()
 	HttpClient = NewHttpClient()
+	ListRestyClient = NewListRestyClient()
+}
+
+func NewListRestyClient() *resty.Client {
+	client := NewRestyClient()
+	client.SetTimeout(time.Hour * 1)
+	return client
 }
 
 func NewRestyClient() *resty.Client {
