@@ -1,30 +1,137 @@
 package aliyundrive_share
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"github.com/alist-org/alist/v3/drivers/aliyundrive_open"
+	"github.com/alist-org/alist/v3/internal/driver"
+	"github.com/alist-org/alist/v3/internal/model"
+	"github.com/alist-org/alist/v3/pkg/cron"
+	"github.com/alist-org/alist/v3/pkg/utils"
+	"os"
+	"time"
 
 	"github.com/alist-org/alist/v3/drivers/base"
 	"github.com/alist-org/alist/v3/internal/op"
 	log "github.com/sirupsen/logrus"
 )
 
-func (d *AliyundriveShare) refreshToken() error {
+var (
+	OpenAliyunDriver driver.Driver
+	CacheConfig      Config
+	CacheConfigPath  string
+	CacheTempFile    map[string]model.Obj
+)
+
+func InitConfig() {
+	CacheTempFile = make(map[string]model.Obj)
+	// 读取config
+	CacheConfigPath = os.Getenv("CACHE_CONFIG_PATH")
+	if CacheConfigPath == "" {
+		CacheConfigPath = "/opt/alist/data/cache.json"
+	}
+	log.Infof("cache config file dir: %s", CacheConfigPath)
+	file, _ := os.ReadFile(CacheConfigPath)
+	CacheConfig = Config{}
+	_ = utils.Json.Unmarshal(file, &CacheConfig)
+	if CacheConfig.OauthTokenURL == "" {
+		CacheConfig.OauthTokenURL = "https://api.nn.ci/alist/ali_open/token"
+	}
+
+	if CacheConfig.RemoveWay == "" {
+		CacheConfig.RemoveWay = "delete"
+	}
+
+	if CacheConfig.MaxTempFileSize == 0 {
+		CacheConfig.MaxTempFileSize = 4
+	}
+
+	var err error
+	OpenAliyunDriver, err = getOpenDriver(CacheConfig)
+
+	if err != nil {
+		log.Error("failed to init aliyun shard cache open driver")
+	}
+
+	log.Infof("start to init aliyun shard cache open driver")
+
+	_, _, err = refreshToken()
+	if err != nil {
+		log.Errorf("%+v", err)
+	}
+
+	refreshCron := cron.NewCron(time.Hour * 2)
+	refreshCron.Do(func() {
+		_, _, err := refreshToken()
+		if err != nil {
+			log.Errorf("%+v", err)
+		}
+	})
+}
+
+func getOpenDriver(config Config) (driver.Driver, error) {
+	// 生成驱动
+	aliOpenAddition := aliyundrive_open.Addition{
+		RefreshToken:   config.OpenRefreshToken,
+		OrderBy:        config.OrderBy,
+		OrderDirection: config.OrderDirection,
+		OauthTokenURL:  config.OauthTokenURL,
+		ClientID:       config.ClientID,
+		ClientSecret:   config.ClientSecret,
+		RemoveWay:      config.RemoveWay,
+		InternalUpload: config.InternalUpload,
+	}
+	driveNew, err := op.GetDriverNew("AliyundriveOpen")
+	if err != nil {
+		return nil, err
+	}
+	aliyundriveOpen := driveNew()
+	aliOpenAdditionJson, err := utils.Json.MarshalToString(aliOpenAddition)
+	if err != nil {
+		return nil, err
+	}
+	err = utils.Json.UnmarshalFromString(aliOpenAdditionJson, aliyundriveOpen.GetAddition())
+	if err == nil {
+		var ctx context.Context
+		err = aliyundriveOpen.Init(ctx)
+	}
+	return aliyundriveOpen, nil
+}
+
+func refreshToken() (string, string, error) {
 	url := "https://auth.aliyundrive.com/v2/account/token"
 	var resp base.TokenResp
 	var e ErrorResp
 	_, err := base.RestyClient.R().
-		SetBody(base.Json{"refresh_token": d.RefreshToken, "grant_type": "refresh_token"}).
+		SetBody(base.Json{"refresh_token": CacheConfig.SharedRefreshToken, "grant_type": "refresh_token"}).
 		SetResult(&resp).
 		SetError(&e).
 		Post(url)
 	if err != nil {
-		return err
+		return "", "", err
 	}
 	if e.Code != "" {
-		return fmt.Errorf("failed to refresh token: %s", e.Message)
+		return "", "", fmt.Errorf("failed to refresh shared driver token: %s", e.Message)
 	}
-	d.RefreshToken, d.AccessToken = resp.RefreshToken, resp.AccessToken
+	CacheConfig.SharedRefreshToken, CacheConfig.SharedAccessToken = resp.RefreshToken, resp.AccessToken
+	CacheConfig.OpenRefreshToken = OpenAliyunDriver.(*aliyundrive_open.AliyundriveOpen).RefreshToken
+
+	cacheConfigJson, err := utils.Json.MarshalToString(CacheConfig)
+	if err != nil {
+		return "", "", err
+	}
+
+	if err := os.WriteFile(CacheConfigPath, []byte(cacheConfigJson), 0666); err != nil {
+		log.Error("failed to save cache config to config file")
+	}
+	log.Infof("refresh shared driver token successfully")
+
+	return CacheConfig.SharedRefreshToken, CacheConfig.SharedAccessToken, err
+}
+
+func (d *AliyundriveShare) refreshToken() error {
+	d.RefreshToken, d.AccessToken = CacheConfig.SharedRefreshToken, CacheConfig.SharedAccessToken
 	op.MustSaveDriverStorage(d)
 	return nil
 }
@@ -57,7 +164,7 @@ func (d *AliyundriveShare) request(url, method string, callback base.ReqCallback
 	req := base.RestyClient.R().
 		SetError(&e).
 		SetHeader("content-type", "application/json").
-		SetHeader("Authorization", "Bearer\t"+d.AccessToken).
+		SetHeader("Authorization", "Bearer\t"+CacheConfig.SharedAccessToken).
 		SetHeader("x-share-token", d.ShareToken)
 	if callback != nil {
 		callback(req)
@@ -71,6 +178,10 @@ func (d *AliyundriveShare) request(url, method string, callback base.ReqCallback
 	if e.Code != "" {
 		if e.Code == "AccessTokenInvalid" || e.Code == "ShareLinkTokenInvalid" {
 			if e.Code == "AccessTokenInvalid" {
+				_, _, err := refreshToken()
+				if err != nil {
+					return nil, err
+				}
 				err = d.refreshToken()
 			} else {
 				err = d.getShareToken()

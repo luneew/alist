@@ -1,6 +1,7 @@
 name: build_docker
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main ]
 
@@ -15,7 +16,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: xhofe/alist
+          images: louiswi/alist
       - name: Replace release with dev
         run: |
           sed -i 's/release/dev/g' Dockerfile
@@ -26,7 +27,7 @@ jobs:
       - name: Login to DockerHub
         uses: docker/login-action@v2
         with:
-          username: xhofe
+          username: louiswi
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build and push
         id: docker_build
@@ -37,29 +38,3 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64,linux/arm64
-
-  build_docker_with_aria2:
-    needs: build_docker
-    name: Build docker with aria2
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-        with:
-          repository: alist-org/with_aria2
-          ref: main
-          persist-credentials: false
-          fetch-depth: 0
-
-      - name: Commit
-        run: |
-          git config --local user.email "i@nn.ci"
-          git config --local user.name "Noah Hsu"
-          git commit --allow-empty -m "Trigger build for ${{ github.sha }}"
-
-      - name: Push commit
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.MY_TOKEN }}
-          branch: main
-          repository: alist-org/with_aria2
