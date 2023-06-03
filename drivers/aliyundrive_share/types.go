@@ -112,3 +112,52 @@ type Config struct {
 	TempFolderId       string `json:"temp_folder_id" help:"temp dir for cache shared aliyun"`
 	MaxTempFileSize    int    `json:"max_temp_file_size" help:"MaxTempFileSize"`
 }
+
+type SignInResp struct {
+	Success    bool        `json:"success"`
+	Code       interface{} `json:"code"`
+	Message    interface{} `json:"message"`
+	TotalCount interface{} `json:"totalCount"`
+	NextToken  interface{} `json:"nextToken"`
+	MaxResults interface{} `json:"maxResults"`
+	Result     struct {
+		Subject             string `json:"subject"`
+		Title               string `json:"title"`
+		Description         string `json:"description"`
+		IsReward            bool   `json:"isReward"`
+		Blessing            string `json:"blessing"`
+		SignInCount         int    `json:"signInCount"`
+		SignInCover         string `json:"signInCover"`
+		SignInRemindCover   string `json:"signInRemindCover"`
+		RewardCover         string `json:"rewardCover"`
+		PcAndWebRewardCover string `json:"pcAndWebRewardCover"`
+		SignInLogs          []struct {
+			Day             int         `json:"day"`
+			Status          string      `json:"status"`
+			Icon            string      `json:"icon"`
+			PcAndWebIcon    string      `json:"pcAndWebIcon"`
+			Notice          interface{} `json:"notice"`
+			Type            string      `json:"type"`
+			RewardAmount    int         `json:"rewardAmount"`
+			Themes          string      `json:"themes"`
+			CalendarChinese string      `json:"calendarChinese"`
+			CalendarDay     string      `json:"calendarDay"`
+			CalendarMonth   string      `json:"calendarMonth"`
+			Poster          interface{} `json:"poster"`
+			Reward          struct {
+				GoodsID      int         `json:"goodsId"`
+				Name         string      `json:"name"`
+				Description  string      `json:"description"`
+				Background   string      `json:"background"`
+				Color        string      `json:"color"`
+				Action       string      `json:"action"`
+				DetailAction string      `json:"detailAction"`
+				Notice       string      `json:"notice"`
+				BottleID     interface{} `json:"bottleId"`
+				BottleName   interface{} `json:"bottleName"`
+			} `json:"reward"`
+			IsReward bool `json:"isReward"`
+		} `json:"signInLogs"`
+	} `json:"result"`
+	Arguments interface{} `json:"arguments"`
+}

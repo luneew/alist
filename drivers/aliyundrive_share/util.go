@@ -68,6 +68,23 @@ func InitConfig() {
 			log.Errorf("%+v", err)
 		}
 	})
+
+	res, err := signIn()
+	if err != nil {
+		log.Errorf("failed to sign aliyun, %s, %+v", res, err)
+	} else {
+		log.Infof("sign aliyun successfully, %s", res)
+	}
+
+	signCron := cron.NewCron(time.Hour * 24)
+	signCron.Do(func() {
+		res, err := signIn()
+		if err != nil {
+			log.Errorf("failed to sign aliyun, %s, %+v", res, err)
+		} else {
+			log.Infof("sign aliyun successfully, %s", res)
+		}
+	})
 }
 
 func getOpenDriver(config Config) (driver.Driver, error) {
@@ -97,6 +114,36 @@ func getOpenDriver(config Config) (driver.Driver, error) {
 		err = aliyundriveOpen.Init(ctx)
 	}
 	return aliyundriveOpen, nil
+}
+
+func signIn() (string, error) {
+	url := "https://member.aliyundrive.com/v1/activity/sign_in_list"
+	var resp SignInResp
+	var e ErrorResp
+	_, err := base.RestyClient.R().
+		SetHeader("Authorization", "Bearer\t"+CacheConfig.SharedAccessToken).
+		SetPathParam("_rx-s", "mobile").
+		SetBody(base.Json{
+			"isReward": false,
+		}).
+		SetResult(&resp).
+		SetError(&e).
+		Post(url)
+
+	respStr, _ := utils.Json.MarshalToString(resp)
+
+	if err != nil {
+		return respStr, err
+	}
+	if e.Code != "" {
+		return respStr, fmt.Errorf("failed to sign aliyun: %s", e.Message)
+	}
+
+	if err != nil {
+		return respStr, err
+	}
+
+	return respStr, err
 }
 
 func refreshToken() (string, string, error) {
