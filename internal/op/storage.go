@@ -226,6 +226,9 @@ func MustSaveDriverStorage(driver driver.Driver) {
 
 func saveDriverStorage(driver driver.Driver) error {
 	storage := driver.GetStorage()
+	if storage.Driver == "" {
+		return nil
+	}
 	addition := driver.GetAddition()
 	str, err := utils.Json.MarshalToString(addition)
 	if err != nil {
