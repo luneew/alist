@@ -269,6 +269,7 @@ func (d *AliyundriveShare) getFiles(fileId string) ([]File, error) {
 			Post("https://api.aliyundrive.com/adrive/v2/file/list_by_share")
 		//Post("https://api.aliyundrive.com/adrive/v3/file/list")
 		if err != nil {
+			log.Errorf("failed to get files, err response: %s, err: %v", res.String(), err)
 			return nil, err
 		}
 		log.Debugf("aliyundrive share get files: %s", res.String())
@@ -276,10 +277,12 @@ func (d *AliyundriveShare) getFiles(fileId string) ([]File, error) {
 			if e.Code == "AccessTokenInvalid" || e.Code == "ShareLinkTokenInvalid" {
 				err = d.getShareToken()
 				if err != nil {
+					log.Errorf("failed to get files, err response: %s, err: %v", res.String(), err)
 					return nil, err
 				}
 				return d.getFiles(fileId)
 			}
+			log.Errorf("failed to get files, err response: %s, err: %v", res.String(), err)
 			return nil, errors.New(e.Message)
 		}
 		data["marker"] = resp.NextMarker

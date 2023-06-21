@@ -77,6 +77,7 @@ func (d *AliyundriveShare) List(ctx context.Context, dir model.Obj, args model.L
 func (d *AliyundriveShare) list(ctx context.Context, dir model.Obj) ([]model.Obj, error) {
 	files, err := d.getFiles(dir.GetID())
 	if err != nil {
+		utils.Log.Errorf("failed to list file from dir:  %s, error: %v", dir.GetPath(), err)
 		return nil, err
 	}
 	return utils.SliceConvert(files, func(src File) (model.Obj, error) {
