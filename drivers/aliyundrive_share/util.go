@@ -212,6 +212,7 @@ func (d *AliyundriveShare) request(url, method string, callback base.ReqCallback
 		SetError(&e).
 		SetHeader("content-type", "application/json").
 		SetHeader("Authorization", "Bearer\t"+CacheConfig.SharedAccessToken).
+		SetHeader("X-Canary", "client=web,app=share,version=v2.3.1").
 		SetHeader("x-share-token", d.ShareToken)
 	if callback != nil {
 		callback(req)
@@ -265,6 +266,7 @@ func (d *AliyundriveShare) getFiles(fileId string) ([]File, error) {
 		var resp ListResp
 		res, err := base.ListRestyClient.R().
 			SetHeader("x-share-token", d.ShareToken).
+			SetHeader("X-Canary", "client=web,app=share,version=v2.3.1").
 			SetResult(&resp).SetError(&e).SetBody(data).
 			Post("https://api.aliyundrive.com/adrive/v2/file/list_by_share")
 		//Post("https://api.aliyundrive.com/adrive/v3/file/list")

@@ -137,7 +137,8 @@ func (d *AliyundriveShare) link(ctx context.Context, file model.Obj) (*model.Lin
 	var fileCopyResp FileCopyResp
 
 	_, err := d.request("https://api.aliyundrive.com/adrive/v2/batch", http.MethodPost, func(req *resty.Request) {
-		req.SetBody(fileCopyReq).SetResult(&fileCopyResp)
+		req.SetBody(fileCopyReq).SetHeader("X-Canary", "client=web,app=share,version=v2.3.1").
+			SetResult(&fileCopyResp)
 	})
 
 	if err != nil {
