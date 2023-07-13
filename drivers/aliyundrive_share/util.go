@@ -76,7 +76,7 @@ func InitConfig() {
 		log.Infof("sign aliyun successfully, %s", res)
 	}
 
-	signCron := cron.NewCron(time.Hour * 24)
+	signCron := cron.NewCron(time.Hour * 6)
 	signCron.Do(func() {
 		res, err := signIn()
 		if err != nil {
@@ -134,6 +134,16 @@ func signIn() (string, error) {
 
 	if err != nil {
 		return respStr, err
+	}
+	if e.Code != "" {
+		if e.Code == "AccessTokenInvalid" {
+			_, _, err := refreshToken()
+
+			if err != nil {
+				return "", err
+			}
+			return signIn()
+		}
 	}
 	if e.Code != "" {
 		return respStr, fmt.Errorf("failed to sign aliyun: %s", e.Message)
